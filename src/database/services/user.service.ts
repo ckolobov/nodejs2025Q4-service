@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from './interfaces';
+import { User } from '../interfaces';
 
 @Injectable()
-export class DatabaseService {
+export class UserService {
   private users: Map<string, User> = new Map();
 
-  // User operations
   createUser(login: string, password: string): User {
     const now = Date.now();
     const user: User = {
