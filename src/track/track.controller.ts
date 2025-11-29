@@ -12,13 +12,16 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import { TrackService } from '../database/services';
+import { TrackService, FavoritesService } from '../database/services';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 
 @Controller('track')
 export class TrackController {
-  constructor(private readonly trackService: TrackService) {}
+  constructor(
+    private readonly trackService: TrackService,
+    private readonly favoritesService: FavoritesService,
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -79,6 +82,9 @@ export class TrackController {
     if (!track) {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
+
+    // Remove track from favorites if it's there
+    this.favoritesService.removeTrack(id);
 
     this.trackService.deleteTrack(id);
   }

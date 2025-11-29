@@ -16,6 +16,7 @@ import {
   ArtistService,
   TrackService,
   AlbumService,
+  FavoritesService,
 } from '../database/services';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
@@ -26,6 +27,7 @@ export class ArtistController {
     private readonly artistService: ArtistService,
     private readonly trackService: TrackService,
     private readonly albumService: AlbumService,
+    private readonly favoritesService: FavoritesService,
   ) {}
 
   @Get()
@@ -104,6 +106,9 @@ export class ArtistController {
         this.albumService.updateAlbum(album.id, { artistId: null });
       }
     });
+
+    // Remove artist from favorites if it's there
+    this.favoritesService.removeArtist(id);
 
     this.artistService.deleteArtist(id);
   }

@@ -12,7 +12,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import { AlbumService, TrackService } from '../database/services';
+import {
+  AlbumService,
+  TrackService,
+  FavoritesService,
+} from '../database/services';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 
@@ -21,6 +25,7 @@ export class AlbumController {
   constructor(
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,
+    private readonly favoritesService: FavoritesService,
   ) {}
 
   @Get()
@@ -92,6 +97,9 @@ export class AlbumController {
         this.trackService.updateTrack(track.id, { albumId: null });
       }
     });
+
+    // Remove album from favorites if it's there
+    this.favoritesService.removeAlbum(id);
 
     this.albumService.deleteAlbum(id);
   }
