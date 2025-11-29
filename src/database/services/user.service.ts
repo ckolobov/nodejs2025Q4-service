@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { User } from '../interfaces';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class UserService {
   createUser(login: string, password: string): User {
     const now = Date.now();
     const user: User = {
-      id: uuidv4(),
+      id: randomUUID(),
       login,
       password,
       version: 1,

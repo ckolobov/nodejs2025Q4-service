@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { Artist } from '../interfaces';
 
 @Injectable()
@@ -8,7 +8,7 @@ export class ArtistService {
 
   createArtist(name: string, grammy: boolean): Artist {
     const artist: Artist = {
-      id: uuidv4(),
+      id: randomUUID(),
       name,
       grammy,
     };

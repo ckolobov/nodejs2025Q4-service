@@ -1,9 +1,9 @@
 import { Module, Global } from '@nestjs/common';
-import { UserService, ArtistService } from './services';
+import { UserService, ArtistService, TrackService } from './services';
 
 @Global()
 @Module({
-  providers: [UserService, ArtistService],
-  exports: [UserService, ArtistService],
+  providers: [UserService, ArtistService, TrackService],
+  exports: [UserService, ArtistService, TrackService],
 })
 export class DatabaseModule {}
