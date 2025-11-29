@@ -12,13 +12,16 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import { AlbumService } from '../database/services';
+import { AlbumService, TrackService } from '../database/services';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 
 @Controller('album')
 export class AlbumController {
-  constructor(private readonly albumService: AlbumService) {}
+  constructor(
+    private readonly albumService: AlbumService,
+    private readonly trackService: TrackService,
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -81,6 +84,14 @@ export class AlbumController {
     if (!album) {
       throw new NotFoundException(`Album with id ${id} not found`);
     }
+
+    // Set albumId to null for all tracks that reference this album
+    const allTracks = this.trackService.getAllTracks();
+    allTracks.forEach((track) => {
+      if (track.albumId === id) {
+        this.trackService.updateTrack(track.id, { albumId: null });
+      }
+    });
 
     this.albumService.deleteAlbum(id);
   }
