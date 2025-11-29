@@ -4,11 +4,24 @@ import {
   ArtistService,
   TrackService,
   AlbumService,
+  FavoritesService,
 } from './services';
 
 @Global()
 @Module({
-  providers: [UserService, ArtistService, TrackService, AlbumService],
-  exports: [UserService, ArtistService, TrackService, AlbumService],
+  providers: [
+    UserService,
+    ArtistService,
+    TrackService,
+    AlbumService,
+    FavoritesService,
+  ],
+  exports: [
+    UserService,
+    ArtistService,
+    TrackService,
+    AlbumService,
+    FavoritesService,
+  ],
 })
 export class DatabaseModule {}
