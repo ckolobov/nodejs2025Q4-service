@@ -1,4 +1,3 @@
-# Build stage
 FROM node:24-alpine AS builder
 
 # Set working directory
@@ -8,28 +7,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
-# Copy source code
+# Copy the rest of the application files
 COPY . .
 
 # Build the application
 RUN npm run build
-
-# Production stage
-FROM node:24-alpine AS production
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
 
 # Expose port (adjust if needed)
 EXPOSE 4000

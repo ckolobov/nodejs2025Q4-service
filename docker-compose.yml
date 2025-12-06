@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: home_library_db
+    environment:
+      POSTGRES_DB: home_library
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: home_library_app
+    environment:
+      PORT: 4000
+      CRYPT_SALT: 10
+      JWT_SECRET_KEY: secret123123
+      JWT_SECRET_REFRESH_KEY: secret123123
+      TOKEN_EXPIRE_TIME: 1h
+      TOKEN_REFRESH_EXPIRE_TIME: 24h
+      # Database connection
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: home_library
+    ports:
+      - "4000:4000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+
+# Custom network for container communication
+networks:
+  app_network:
+    driver: bridge
+    name: home_library_network
+
+# Volumes for data persistence
+volumes:
+  postgres_data:
+    name: home_library_postgres_data
