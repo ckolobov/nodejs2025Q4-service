@@ -30,7 +30,7 @@ cd nodejs2025Q4-service
 ### 2. Install Dependencies
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### 3. Configure Environment Variables
