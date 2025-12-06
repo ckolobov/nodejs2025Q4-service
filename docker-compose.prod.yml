@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: home_library_app
     environment:
       PORT: 4000
@@ -45,18 +45,11 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_DATABASE: home_library
-      NODE_ENV: development
+      NODE_ENV: production
     ports:
       - "4000:4000"
     volumes:
-      - ./src:/app/src
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-      - ./tsconfig.json:/app/tsconfig.json
-      - ./nest-cli.json:/app/nest-cli.json
-      - /app/node_modules
       - app_logs:/app/logs
-    command: npm run start:dev
     depends_on:
       database:
         condition: service_healthy
