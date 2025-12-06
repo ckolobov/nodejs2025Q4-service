@@ -68,3 +68,9 @@ logs
 .prettierrc
 .eslintrc.js
 .editorconfig
+
+# Security scan reports
+trivy-report.json
+trivy-report.html
+trivy-report.sarif
+trivy-*.*

@@ -33,3 +33,9 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Security scan reports
+trivy-report.json
+trivy-report.html
+trivy-report.sarif
+trivy-*.*
