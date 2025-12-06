@@ -1,12 +1,10 @@
-version: '3.9'
-
 services:
   # PostgreSQL Database
   database:
     build:
       context: ./database
       dockerfile: Dockerfile
-    container_name: home_library_db
+    container_name: home_library_db_dev
     environment:
       POSTGRES_DB: home_library
       POSTGRES_USER: postgres
@@ -29,9 +27,8 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: home_library_app
+      dockerfile: Dockerfile.dev
+    container_name: home_library_app_dev
     environment:
       PORT: 4000
       CRYPT_SALT: 10

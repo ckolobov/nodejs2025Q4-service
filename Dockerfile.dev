@@ -1,0 +1,22 @@
+FROM node:24-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci --legacy-peer-deps
+
+# Copy the rest of the application files
+COPY . .
+
+# Expose port
+EXPOSE 4000
+
+# Set Node environment to development
+ENV NODE_ENV=development
+
+# Start the application in watch mode
+CMD ["npm", "run", "start:dev"]

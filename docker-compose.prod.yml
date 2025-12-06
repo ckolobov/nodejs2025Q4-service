@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # PostgreSQL Database
   database:
@@ -29,8 +27,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: production
+      dockerfile: Dockerfile.prod
     container_name: home_library_app
     environment:
       PORT: 4000
