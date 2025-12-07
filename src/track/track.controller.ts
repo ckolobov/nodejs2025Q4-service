@@ -25,18 +25,18 @@ export class TrackController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getAllTracks() {
+  async getAllTracks() {
     return this.trackService.getAllTracks();
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  getTrackById(@Param('id') id: string) {
+  async getTrackById(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid track ID (not a valid UUID)');
     }
 
-    const track = this.trackService.getTrackById(id);
+    const track = await this.trackService.getTrackById(id);
     if (!track) {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
@@ -46,7 +46,7 @@ export class TrackController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createTrack(@Body() createTrackDto: CreateTrackDto) {
+  async createTrack(@Body() createTrackDto: CreateTrackDto) {
     return this.trackService.createTrack(
       createTrackDto.name,
       createTrackDto.artistId,
@@ -57,35 +57,35 @@ export class TrackController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  updateTrack(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
+  async updateTrack(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid track ID (not a valid UUID)');
     }
 
-    const track = this.trackService.getTrackById(id);
+    const track = await this.trackService.getTrackById(id);
     if (!track) {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
 
-    const updatedTrack = this.trackService.updateTrack(id, updateTrackDto);
+    const updatedTrack = await this.trackService.updateTrack(id, updateTrackDto);
     return updatedTrack;
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteTrack(@Param('id') id: string) {
+  async deleteTrack(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid track ID (not a valid UUID)');
     }
 
-    const track = this.trackService.getTrackById(id);
+    const track = await this.trackService.getTrackById(id);
     if (!track) {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
 
     // Remove track from favorites if it's there
-    this.favoritesService.removeTrack(id);
+    await this.favoritesService.removeTrack(id);
 
-    this.trackService.deleteTrack(id);
+    await this.trackService.deleteTrack(id);
   }
 }

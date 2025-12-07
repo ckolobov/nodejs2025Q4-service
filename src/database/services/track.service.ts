@@ -1,56 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { Track } from '../interfaces';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
-  private tracks: Map<string, Track> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
-  createTrack(
+  async createTrack(
     name: string,
     artistId: string | null,
     albumId: string | null,
     duration: number,
-  ): Track {
-    const track: Track = {
-      id: randomUUID(),
-      name,
-      artistId,
-      albumId,
-      duration,
-    };
-    this.tracks.set(track.id, track);
-    return track;
+  ): Promise<Track> {
+    return this.prisma.track.create({
+      data: {
+        name,
+        artistId,
+        albumId,
+        duration,
+      },
+    });
   }
 
-  getTrackById(id: string): Track | undefined {
-    return this.tracks.get(id);
+  async getTrackById(id: string): Promise<Track | null> {
+    return this.prisma.track.findUnique({
+      where: { id },
+    });
   }
 
-  getAllTracks(): Track[] {
-    return Array.from(this.tracks.values());
+  async getAllTracks(): Promise<Track[]> {
+    return this.prisma.track.findMany();
   }
 
-  updateTrack(
+  async updateTrack(
     id: string,
     updates: Partial<Omit<Track, 'id'>>,
-  ): Track | undefined {
-    const track = this.tracks.get(id);
-    if (!track) {
-      return undefined;
-    }
-
-    const updatedTrack: Track = {
-      ...track,
-      ...updates,
-      id: track.id, // Ensure id cannot be changed
-    };
-
-    this.tracks.set(id, updatedTrack);
-    return updatedTrack;
+  ): Promise<Track> {
+    return this.prisma.track.update({
+      where: { id },
+      data: updates,
+    });
   }
 
-  deleteTrack(id: string): boolean {
-    return this.tracks.delete(id);
+  async deleteTrack(id: string): Promise<Track> {
+    return this.prisma.track.delete({
+      where: { id },
+    });
   }
 }

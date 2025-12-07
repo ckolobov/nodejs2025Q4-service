@@ -25,6 +25,7 @@ model Artist {
   name   String
   grammy Boolean
   albums Album[]
+  tracks Track[]
 
   @@map("artists")
 }
@@ -35,6 +36,19 @@ model Album {
   year     Int
   artistId String? @db.Uuid
   artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  tracks   Track[]
 
   @@map("albums")
+}
+
+model Track {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String
+  artistId String? @db.Uuid
+  albumId  String? @db.Uuid
+  duration Int
+  artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  album    Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  @@map("tracks")
 }
