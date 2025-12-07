@@ -12,16 +12,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import { TrackService, FavoritesService } from '../database/services';
+import { TrackService } from '../database/services';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 
 @Controller('track')
 export class TrackController {
-  constructor(
-    private readonly trackService: TrackService,
-    private readonly favoritesService: FavoritesService,
-  ) {}
+  constructor(private readonly trackService: TrackService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -83,9 +80,8 @@ export class TrackController {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
 
-    // Remove track from favorites if it's there
-    await this.favoritesService.removeTrack(id);
-
+    // Database relations will handle:
+    // - Removing from favorites (ON DELETE CASCADE)
     await this.trackService.deleteTrack(id);
   }
 }

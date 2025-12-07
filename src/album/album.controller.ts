@@ -12,21 +12,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import {
-  AlbumService,
-  TrackService,
-  FavoritesService,
-} from '../database/services';
+import { AlbumService } from '../database/services';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 
 @Controller('album')
 export class AlbumController {
-  constructor(
-    private readonly albumService: AlbumService,
-    private readonly trackService: TrackService,
-    private readonly favoritesService: FavoritesService,
-  ) {}
+  constructor(private readonly albumService: AlbumService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -87,17 +79,9 @@ export class AlbumController {
       throw new NotFoundException(`Album with id ${id} not found`);
     }
 
-    // Set albumId to null for all tracks that reference this album
-    const allTracks = await this.trackService.getAllTracks();
-    for (const track of allTracks) {
-      if (track.albumId === id) {
-        await this.trackService.updateTrack(track.id, { albumId: null });
-      }
-    }
-
-    // Remove album from favorites if it's there
-    await this.favoritesService.removeAlbum(id);
-
+    // Database relations will handle:
+    // - Setting albumId to null for tracks (ON DELETE SET NULL)
+    // - Removing from favorites (ON DELETE CASCADE)
     await this.albumService.deleteAlbum(id);
   }
 }

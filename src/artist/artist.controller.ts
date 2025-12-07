@@ -12,23 +12,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import {
-  ArtistService,
-  TrackService,
-  AlbumService,
-  FavoritesService,
-} from '../database/services';
+import { ArtistService } from '../database/services';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Controller('artist')
 export class ArtistController {
-  constructor(
-    private readonly artistService: ArtistService,
-    private readonly trackService: TrackService,
-    private readonly albumService: AlbumService,
-    private readonly favoritesService: FavoritesService,
-  ) {}
+  constructor(private readonly artistService: ArtistService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -94,25 +84,9 @@ export class ArtistController {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
 
-    // Set artistId to null for all tracks that reference this artist
-    const allTracks = await this.trackService.getAllTracks();
-    for (const track of allTracks) {
-      if (track.artistId === id) {
-        await this.trackService.updateTrack(track.id, { artistId: null });
-      }
-    }
-
-    // Set artistId to null for all albums that reference this artist
-    const allAlbums = await this.albumService.getAllAlbums();
-    for (const album of allAlbums) {
-      if (album.artistId === id) {
-        await this.albumService.updateAlbum(album.id, { artistId: null });
-      }
-    }
-
-    // Remove artist from favorites if it's there
-    await this.favoritesService.removeArtist(id);
-
+    // Database relations will handle:
+    // - Setting artistId to null for tracks/albums (ON DELETE SET NULL)
+    // - Removing from favorites (ON DELETE CASCADE)
     await this.artistService.deleteArtist(id);
   }
 }
