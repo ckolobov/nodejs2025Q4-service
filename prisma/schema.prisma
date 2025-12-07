@@ -19,3 +19,11 @@ model User {
 
   @@map("users")
 }
+
+model Artist {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String
+  grammy Boolean
+
+  @@map("artists")
+}

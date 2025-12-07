@@ -61,10 +61,7 @@ export class AlbumController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  updateAlbum(
-    @Param('id') id: string,
-    @Body() updateAlbumDto: UpdateAlbumDto,
-  ) {
+  updateAlbum(@Param('id') id: string, @Body() updateAlbumDto: UpdateAlbumDto) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid album ID (not a valid UUID)');
     }

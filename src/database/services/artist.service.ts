@@ -1,49 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { Artist } from '../interfaces';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class ArtistService {
-  private artists: Map<string, Artist> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
-  createArtist(name: string, grammy: boolean): Artist {
-    const artist: Artist = {
-      id: randomUUID(),
-      name,
-      grammy,
-    };
-    this.artists.set(artist.id, artist);
-    return artist;
+  async createArtist(name: string, grammy: boolean): Promise<Artist> {
+    return this.prisma.artist.create({
+      data: {
+        name,
+        grammy,
+      },
+    });
   }
 
-  getArtistById(id: string): Artist | undefined {
-    return this.artists.get(id);
+  async getArtistById(id: string): Promise<Artist | null> {
+    return this.prisma.artist.findUnique({
+      where: { id },
+    });
   }
 
-  getAllArtists(): Artist[] {
-    return Array.from(this.artists.values());
+  async getAllArtists(): Promise<Artist[]> {
+    return this.prisma.artist.findMany();
   }
 
-  updateArtist(
+  async updateArtist(
     id: string,
     updates: Partial<Omit<Artist, 'id'>>,
-  ): Artist | undefined {
-    const artist = this.artists.get(id);
-    if (!artist) {
-      return undefined;
-    }
-
-    const updatedArtist: Artist = {
-      ...artist,
-      ...updates,
-      id: artist.id, // Ensure id cannot be changed
-    };
-
-    this.artists.set(id, updatedArtist);
-    return updatedArtist;
+  ): Promise<Artist> {
+    return this.prisma.artist.update({
+      where: { id },
+      data: updates,
+    });
   }
 
-  deleteArtist(id: string): boolean {
-    return this.artists.delete(id);
+  async deleteArtist(id: string): Promise<Artist> {
+    return this.prisma.artist.delete({
+      where: { id },
+    });
   }
 }

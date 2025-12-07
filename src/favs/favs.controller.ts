@@ -30,32 +30,40 @@ export class FavsController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getAllFavorites(): FavoritesResponse {
+  async getAllFavorites(): Promise<FavoritesResponse> {
     const favorites = this.favoritesService.getFavorites();
 
-    const artists = favorites.artists
-      .map((id) => this.artistService.getArtistById(id))
-      .filter((artist) => artist !== undefined);
+    const artistsPromises = favorites.artists.map((id) =>
+      this.artistService.getArtistById(id),
+    );
+    const albumsPromises = favorites.albums.map((id) =>
+      this.albumService.getAlbumById(id),
+    );
+    const tracksPromises = favorites.tracks.map((id) =>
+      this.trackService.getTrackById(id),
+    );
 
-    const albums = favorites.albums
-      .map((id) => this.albumService.getAlbumById(id))
-      .filter((album) => album !== undefined);
+    const [artists, albums, tracks] = await Promise.all([
+      Promise.all(artistsPromises),
+      Promise.all(albumsPromises),
+      Promise.all(tracksPromises),
+    ]);
 
-    const tracks = favorites.tracks
-      .map((id) => this.trackService.getTrackById(id))
-      .filter((track) => track !== undefined);
-
-    return { artists, albums, tracks };
+    return {
+      artists: artists.filter((artist) => artist !== null),
+      albums: albums.filter((album) => album !== null),
+      tracks: tracks.filter((track) => track !== null),
+    };
   }
 
   @Post('track/:id')
   @HttpCode(HttpStatus.CREATED)
-  addTrackToFavorites(@Param('id') id: string) {
+  async addTrackToFavorites(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid track ID (not a valid UUID)');
     }
 
-    const track = this.trackService.getTrackById(id);
+    const track = await this.trackService.getTrackById(id);
     if (!track) {
       throw new UnprocessableEntityException(
         `Track with id ${id} doesn't exist`,
@@ -82,12 +90,12 @@ export class FavsController {
 
   @Post('album/:id')
   @HttpCode(HttpStatus.CREATED)
-  addAlbumToFavorites(@Param('id') id: string) {
+  async addAlbumToFavorites(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid album ID (not a valid UUID)');
     }
 
-    const album = this.albumService.getAlbumById(id);
+    const album = await this.albumService.getAlbumById(id);
     if (!album) {
       throw new UnprocessableEntityException(
         `Album with id ${id} doesn't exist`,
@@ -114,12 +122,12 @@ export class FavsController {
 
   @Post('artist/:id')
   @HttpCode(HttpStatus.CREATED)
-  addArtistToFavorites(@Param('id') id: string) {
+  async addArtistToFavorites(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid artist ID (not a valid UUID)');
     }
 
-    const artist = this.artistService.getArtistById(id);
+    const artist = await this.artistService.getArtistById(id);
     if (!artist) {
       throw new UnprocessableEntityException(
         `Artist with id ${id} doesn't exist`,

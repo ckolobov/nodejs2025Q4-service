@@ -32,18 +32,18 @@ export class ArtistController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getAllArtists() {
+  async getAllArtists() {
     return this.artistService.getAllArtists();
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  getArtistById(@Param('id') id: string) {
+  async getArtistById(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid artist ID (not a valid UUID)');
     }
 
-    const artist = this.artistService.getArtistById(id);
+    const artist = await this.artistService.getArtistById(id);
     if (!artist) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
@@ -53,7 +53,7 @@ export class ArtistController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createArtist(@Body() createArtistDto: CreateArtistDto) {
+  async createArtist(@Body() createArtistDto: CreateArtistDto) {
     return this.artistService.createArtist(
       createArtistDto.name,
       createArtistDto.grammy,
@@ -62,7 +62,7 @@ export class ArtistController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  updateArtist(
+  async updateArtist(
     @Param('id') id: string,
     @Body() updateArtistDto: UpdateArtistDto,
   ) {
@@ -70,46 +70,49 @@ export class ArtistController {
       throw new BadRequestException('Invalid artist ID (not a valid UUID)');
     }
 
-    const artist = this.artistService.getArtistById(id);
+    const artist = await this.artistService.getArtistById(id);
     if (!artist) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
 
-    const updatedArtist = this.artistService.updateArtist(id, updateArtistDto);
+    const updatedArtist = await this.artistService.updateArtist(
+      id,
+      updateArtistDto,
+    );
     return updatedArtist;
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteArtist(@Param('id') id: string) {
+  async deleteArtist(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid artist ID (not a valid UUID)');
     }
 
-    const artist = this.artistService.getArtistById(id);
+    const artist = await this.artistService.getArtistById(id);
     if (!artist) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
 
     // Set artistId to null for all tracks that reference this artist
-    const allTracks = this.trackService.getAllTracks();
-    allTracks.forEach((track) => {
+    const allTracks = await this.trackService.getAllTracks();
+    for (const track of allTracks) {
       if (track.artistId === id) {
-        this.trackService.updateTrack(track.id, { artistId: null });
+        await this.trackService.updateTrack(track.id, { artistId: null });
       }
-    });
+    }
 
     // Set artistId to null for all albums that reference this artist
-    const allAlbums = this.albumService.getAllAlbums();
-    allAlbums.forEach((album) => {
+    const allAlbums = await this.albumService.getAllAlbums();
+    for (const album of allAlbums) {
       if (album.artistId === id) {
-        this.albumService.updateAlbum(album.id, { artistId: null });
+        await this.albumService.updateAlbum(album.id, { artistId: null });
       }
-    });
+    }
 
     // Remove artist from favorites if it's there
-    this.favoritesService.removeArtist(id);
+    await this.favoritesService.removeArtist(id);
 
-    this.artistService.deleteArtist(id);
+    await this.artistService.deleteArtist(id);
   }
 }
