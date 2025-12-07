@@ -13,7 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import { UserService } from '../database/services';
+import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 
@@ -23,8 +23,8 @@ export class UserController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getAllUsers() {
-    const users = this.userService.getAllUsers();
+  async getAllUsers() {
+    const users = await this.userService.getAllUsers();
     return users.map((user) => {
       const { password: _password, ...userWithoutPassword } = user;
       return userWithoutPassword;
@@ -33,12 +33,12 @@ export class UserController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  getUserById(@Param('id') id: string) {
+  async getUserById(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid user ID (not a valid UUID)');
     }
 
-    const user = this.userService.getUserById(id);
+    const user = await this.userService.getUserById(id);
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
@@ -49,8 +49,8 @@ export class UserController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createUser(@Body() createUserDto: CreateUserDto) {
-    const user = this.userService.createUser(
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    const user = await this.userService.createUser(
       createUserDto.login,
       createUserDto.password,
     );
@@ -61,7 +61,7 @@ export class UserController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  updatePassword(
+  async updatePassword(
     @Param('id') id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
@@ -69,7 +69,7 @@ export class UserController {
       throw new BadRequestException('Invalid user ID (not a valid UUID)');
     }
 
-    const user = this.userService.getUserById(id);
+    const user = await this.userService.getUserById(id);
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
@@ -78,9 +78,13 @@ export class UserController {
       throw new ForbiddenException('Old password is incorrect');
     }
 
-    const updatedUser = this.userService.updateUser(id, {
+    const updatedUser = await this.userService.updateUser(id, {
       password: updatePasswordDto.newPassword,
     });
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
 
     const { password: _password, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
@@ -88,16 +92,16 @@ export class UserController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id') id: string) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid user ID (not a valid UUID)');
     }
 
-    const user = this.userService.getUserById(id);
+    const user = await this.userService.getUserById(id);
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    this.userService.deleteUser(id);
+    await this.userService.deleteUser(id);
   }
 }

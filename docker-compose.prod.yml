@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: home_library_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/log/postgresql
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: home_library_app
+    environment:
+      PORT: ${PORT}
+      CRYPT_SALT: ${CRYPT_SALT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_SECRET_REFRESH_KEY: ${JWT_SECRET_REFRESH_KEY}
+      TOKEN_EXPIRE_TIME: ${TOKEN_EXPIRE_TIME}
+      TOKEN_REFRESH_EXPIRE_TIME: ${TOKEN_REFRESH_EXPIRE_TIME}
+      # Database connection
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DATABASE_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?schema=public
+      NODE_ENV: production
+    ports:
+      - "${PORT}:${PORT}"
+    command: sh -c "npx prisma migrate deploy && node dist/src/main"
+    volumes:
+      - app_logs:/app/logs
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+
+# Custom network for container communication
+networks:
+  app_network:
+    driver: bridge
+    name: home_library_network
+
+# Volumes for data persistence
+volumes:
+  postgres_data:
+    name: home_library_postgres_data
+  postgres_logs:
+    name: home_library_postgres_logs
+  app_logs:
+    name: home_library_app_logs

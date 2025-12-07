@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  login     String   @unique
+  password  String
+  version   Int      @default(1)
+  createdAt BigInt
+  updatedAt BigInt
+
+  @@map("users")
+}
+
+model Artist {
+  id        String           @id @default(uuid()) @db.Uuid
+  name      String
+  grammy    Boolean
+  albums    Album[]
+  tracks    Track[]
+  favorites FavoriteArtist[]
+
+  @@map("artists")
+}
+
+model Album {
+  id        String          @id @default(uuid()) @db.Uuid
+  name      String
+  year      Int
+  artistId  String?         @db.Uuid
+  artist    Artist?         @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  tracks    Track[]
+  favorites FavoriteAlbum[]
+
+  @@map("albums")
+}
+
+model Track {
+  id        String          @id @default(uuid()) @db.Uuid
+  name      String
+  artistId  String?         @db.Uuid
+  albumId   String?         @db.Uuid
+  duration  Int
+  artist    Artist?         @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  album     Album?          @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  favorites FavoriteTrack[]
+
+  @@map("tracks")
+}
+
+model FavoriteArtist {
+  id       String @id @default(uuid()) @db.Uuid
+  artistId String @db.Uuid
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId])
+  @@map("favorite_artists")
+}
+
+model FavoriteAlbum {
+  id      String @id @default(uuid()) @db.Uuid
+  albumId String @db.Uuid
+  album   Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@unique([albumId])
+  @@map("favorite_albums")
+}
+
+model FavoriteTrack {
+  id      String @id @default(uuid()) @db.Uuid
+  trackId String @db.Uuid
+  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId])
+  @@map("favorite_tracks")
+}
