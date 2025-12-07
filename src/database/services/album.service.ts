@@ -1,50 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { Album } from '../interfaces';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {
-  private albums: Map<string, Album> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
-  createAlbum(name: string, year: number, artistId: string | null): Album {
-    const album: Album = {
-      id: randomUUID(),
-      name,
-      year,
-      artistId,
-    };
-    this.albums.set(album.id, album);
-    return album;
+  async createAlbum(
+    name: string,
+    year: number,
+    artistId: string | null,
+  ): Promise<Album> {
+    return this.prisma.album.create({
+      data: {
+        name,
+        year,
+        artistId,
+      },
+    });
   }
 
-  getAlbumById(id: string): Album | undefined {
-    return this.albums.get(id);
+  async getAlbumById(id: string): Promise<Album | null> {
+    return this.prisma.album.findUnique({
+      where: { id },
+    });
   }
 
-  getAllAlbums(): Album[] {
-    return Array.from(this.albums.values());
+  async getAllAlbums(): Promise<Album[]> {
+    return this.prisma.album.findMany();
   }
 
-  updateAlbum(
+  async updateAlbum(
     id: string,
     updates: Partial<Omit<Album, 'id'>>,
-  ): Album | undefined {
-    const album = this.albums.get(id);
-    if (!album) {
-      return undefined;
-    }
-
-    const updatedAlbum: Album = {
-      ...album,
-      ...updates,
-      id: album.id, // Ensure id cannot be changed
-    };
-
-    this.albums.set(id, updatedAlbum);
-    return updatedAlbum;
+  ): Promise<Album> {
+    return this.prisma.album.update({
+      where: { id },
+      data: updates,
+    });
   }
 
-  deleteAlbum(id: string): boolean {
-    return this.albums.delete(id);
+  async deleteAlbum(id: string): Promise<Album> {
+    return this.prisma.album.delete({
+      where: { id },
+    });
   }
 }
