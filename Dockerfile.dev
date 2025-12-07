@@ -15,7 +15,7 @@ ARG DATABASE_URL="postgresql://user:pass@localhost:5432/db?schema=public"
 ENV DATABASE_URL=$DATABASE_URL
 
 # Install all dependencies (including dev dependencies)
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 # Copy the rest of the application files
 COPY . .

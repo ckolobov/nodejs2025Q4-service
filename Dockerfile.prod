@@ -16,7 +16,7 @@ ARG DATABASE_URL="postgresql://user:pass@localhost:5432/db?schema=public"
 ENV DATABASE_URL=$DATABASE_URL
 
 # Install all dependencies (including dev for build)
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 # Copy source code and config files
 COPY tsconfig*.json ./
@@ -28,7 +28,7 @@ COPY doc ./doc
 RUN npm run build
 
 # Install only production dependencies and prune unnecessary files
-RUN npm ci --legacy-peer-deps --omit=dev && \
+RUN npm ci --omit=dev && \
     npm cache clean --force && \
     # Remove unnecessary files from node_modules to reduce size
     find node_modules -name "*.md" -delete && \

@@ -90,6 +90,109 @@ npm start
 
 The application will start on the configured PORT (default: 4000).
 
+## Running with Docker
+
+### Prerequisites
+
+- **Docker** - [Download & Install Docker](https://docs.docker.com/get-docker/)
+- **Docker Compose** - [Download & Install Docker Compose](https://docs.docker.com/compose/install/)
+
+### Environment Configuration for Docker
+
+Ensure your `.env` file is configured for Docker. Use the provided `.env.example` as a template:
+
+```bash
+cp .env.example .env
+```
+
+Important: For Docker, ensure `DB_HOST=database` in your `.env` file (not `localhost`).
+
+### Development Mode with Docker
+
+Start the application with PostgreSQL database in development mode:
+
+```bash
+docker-compose up
+```
+
+Run in detached mode (background):
+
+```bash
+docker-compose up -d
+```
+
+Stop the containers:
+
+```bash
+docker-compose down
+```
+
+Stop and remove volumes (clears database data):
+
+```bash
+docker-compose down -v
+```
+
+### Production Mode with Docker
+
+Start the application in production mode:
+
+```bash
+docker-compose -f docker-compose.prod.yml up
+```
+
+Run in detached mode:
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+Stop the containers:
+
+```bash
+docker-compose -f docker-compose.prod.yml down
+```
+
+### Building Docker Images Individually
+
+Build development image:
+
+```bash
+docker build -f Dockerfile.dev -t nodejs2025q4-service:dev .
+```
+
+Build production image:
+
+```bash
+docker build -f Dockerfile.prod -t nodejs2025q4-service:latest .
+```
+
+### Accessing the Application
+
+Once running, the application will be available at:
+- API: `http://localhost:4000`
+- API Documentation: `http://localhost:4000/doc`
+
+### Viewing Logs
+
+View application logs:
+
+```bash
+docker-compose logs app
+```
+
+View database logs:
+
+```bash
+docker-compose logs database
+```
+
+Follow logs in real-time:
+
+```bash
+docker-compose logs -f app
+```
+
 ## API Documentation
 
 After starting the application, you can access the interactive OpenAPI (Swagger) documentation:
@@ -301,4 +404,84 @@ Format code using Prettier:
 
 ```bash
 npm run format
+```
+
+## Security Scanning
+
+### Dependency Vulnerabilities
+
+Check for known vulnerabilities in npm dependencies:
+
+```bash
+npm audit
+```
+
+Automatically fix vulnerabilities:
+
+```bash
+npm audit fix
+```
+
+### Docker Image Vulnerabilities
+
+Scan application image for vulnerabilities:
+
+```bash
+npm run security:scan
+```
+
+Scan with only CRITICAL and HIGH severity issues:
+
+```bash
+npm run security:scan:critical
+```
+
+Scan filesystem for vulnerabilities, secrets, and misconfigurations:
+
+```bash
+npm run security:scan:fs
+```
+
+Generate JSON report:
+
+```bash
+npm run security:scan:json
+```
+
+Generate HTML report:
+
+```bash
+npm run security:scan:html
+```
+
+Generate SARIF report (for GitHub Code Scanning):
+
+```bash
+npm run security:scan:sarif
+```
+
+### Database Image Vulnerabilities
+
+Scan database image for vulnerabilities:
+
+```bash
+npm run security:scan:db
+```
+
+Generate database scan JSON report:
+
+```bash
+npm run security:scan:db:json
+```
+
+Generate database scan HTML report:
+
+```bash
+npm run security:scan:db:html
+```
+
+Generate database scan SARIF report:
+
+```bash
+npm run security:scan:db:sarif
 ```
