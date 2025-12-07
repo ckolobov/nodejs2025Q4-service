@@ -1,60 +1,95 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { PrismaService } from '../../prisma/prisma.service';
 import { User } from '../interfaces';
 
 @Injectable()
 export class UserService {
-  private users: Map<string, User> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
-  createUser(login: string, password: string): User {
-    const now = Date.now();
-    const user: User = {
-      id: randomUUID(),
-      login,
-      password,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.users.set(user.id, user);
-    return user;
+  async createUser(login: string, password: string): Promise<User> {
+    const now = BigInt(Date.now());
+
+    const user = await this.prisma.user.create({
+      data: {
+        login,
+        password,
+        version: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+
+    return this.mapPrismaUserToUser(user);
   }
 
-  getUserById(id: string): User | undefined {
-    return this.users.get(id);
+  async getUserById(id: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    return user ? this.mapPrismaUserToUser(user) : null;
   }
 
-  getUserByLogin(login: string): User | undefined {
-    return Array.from(this.users.values()).find((user) => user.login === login);
+  async getUserByLogin(login: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { login },
+    });
+
+    return user ? this.mapPrismaUserToUser(user) : null;
   }
 
-  getAllUsers(): User[] {
-    return Array.from(this.users.values());
+  async getAllUsers(): Promise<User[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => this.mapPrismaUserToUser(user));
   }
 
-  updateUser(
+  async updateUser(
     id: string,
     updates: Partial<Omit<User, 'id' | 'createdAt'>>,
-  ): User | undefined {
-    const user = this.users.get(id);
-    if (!user) {
-      return undefined;
+  ): Promise<User | null> {
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id },
+      });
+
+      if (!existingUser) {
+        return null;
+      }
+
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: {
+          ...updates,
+          version: existingUser.version + 1,
+          updatedAt: BigInt(Date.now()),
+        },
+      });
+
+      return this.mapPrismaUserToUser(user);
+    } catch (error) {
+      return null;
     }
-
-    const updatedUser: User = {
-      ...user,
-      ...updates,
-      id: user.id, // Ensure id cannot be changed
-      createdAt: user.createdAt, // Ensure createdAt cannot be changed
-      version: user.version + 1,
-      updatedAt: Date.now(),
-    };
-
-    this.users.set(id, updatedUser);
-    return updatedUser;
   }
 
-  deleteUser(id: string): boolean {
-    return this.users.delete(id);
+  async deleteUser(id: string): Promise<boolean> {
+    try {
+      await this.prisma.user.delete({
+        where: { id },
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private mapPrismaUserToUser(prismaUser: any): User {
+    return {
+      id: prismaUser.id,
+      login: prismaUser.login,
+      password: prismaUser.password,
+      version: prismaUser.version,
+      createdAt: Number(prismaUser.createdAt),
+      updatedAt: Number(prismaUser.updatedAt),
+    };
   }
 }

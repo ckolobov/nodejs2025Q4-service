@@ -6,6 +6,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Copy prisma schema before npm install (needed for postinstall script)
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+
+# Set a dummy DATABASE_URL for prisma generate during build
+ARG DATABASE_URL="postgresql://user:pass@localhost:5432/db?schema=public"
+ENV DATABASE_URL=$DATABASE_URL
+
 # Install all dependencies (including dev dependencies)
 RUN npm ci --legacy-peer-deps
 
@@ -17,6 +25,3 @@ EXPOSE 4000
 
 # Set Node environment to development
 ENV NODE_ENV=development
-
-# Start the application in watch mode
-CMD ["npm", "run", "start:dev"]

@@ -42,3 +42,4 @@ trivy-report.json
 trivy-report.html
 trivy-report.sarif
 trivy-*.*
+/generated/prisma

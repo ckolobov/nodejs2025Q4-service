@@ -7,6 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Copy prisma schema before npm install (needed for postinstall script)
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+
+# Set a dummy DATABASE_URL for prisma generate during build
+ARG DATABASE_URL="postgresql://user:pass@localhost:5432/db?schema=public"
+ENV DATABASE_URL=$DATABASE_URL
+
 # Install all dependencies (including dev for build)
 RUN npm ci --legacy-peer-deps
 
@@ -14,13 +22,37 @@ RUN npm ci --legacy-peer-deps
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 COPY src ./src
+COPY doc ./doc
 
 # Build the application
 RUN npm run build
 
-# Install only production dependencies
+# Install only production dependencies and prune unnecessary files
 RUN npm ci --legacy-peer-deps --omit=dev && \
-    npm cache clean --force
+    npm cache clean --force && \
+    # Remove unnecessary files from node_modules to reduce size
+    find node_modules -name "*.md" -delete && \
+    find node_modules -name "*.ts" -not -name "*.d.ts" -delete && \
+    find node_modules -name "*.map" -delete && \
+    find node_modules -name "LICENSE*" -delete && \
+    find node_modules -name "CHANGELOG*" -delete && \
+    find node_modules -name "README*" -delete && \
+    find node_modules -name ".npmignore" -delete && \
+    find node_modules -name ".gitignore" -delete && \
+    find node_modules -name "*.yml" -delete && \
+    find node_modules -name "*.yaml" -delete && \
+    find node_modules -name "test" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "docs" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "example" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "examples" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -name "*.spec.js" -delete && \
+    find node_modules -name "*.test.js" -delete && \
+    find node_modules -name "tsconfig.json" -delete && \
+    find node_modules -name ".editorconfig" -delete && \
+    find node_modules -name ".prettierrc" -delete && \
+    # Remove source maps and declarations we don't need
+    rm -rf node_modules/@types 2>/dev/null || true
 
 # Production stage - minimal runtime image
 FROM node:24-alpine AS production
@@ -28,24 +60,20 @@ FROM node:24-alpine AS production
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Copy production dependencies from builder
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
-
-# Create non-root user
+# Create non-root user first
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Change ownership
-RUN chown -R nodejs:nodejs /app
+# Set working directory
+WORKDIR /app
+
+# Copy files with proper ownership to avoid chown layer duplication
+COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs prisma ./prisma
+COPY --chown=nodejs:nodejs prisma.config.ts ./
+COPY --chown=nodejs:nodejs --from=builder /app/node_modules ./node_modules
+COPY --chown=nodejs:nodejs --from=builder /app/dist ./dist
+COPY --chown=nodejs:nodejs --from=builder /app/doc ./doc
 
 # Switch to non-root user
 USER nodejs
@@ -58,6 +86,3 @@ ENV NODE_ENV=production
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application
-CMD ["node", "dist/main"]
