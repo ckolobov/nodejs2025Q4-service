@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Album } from '../interfaces';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Album } from './album.interface';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {

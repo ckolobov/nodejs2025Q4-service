@@ -11,18 +11,16 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import {
-  FavoritesService,
-  ArtistService,
-  AlbumService,
-  TrackService,
-} from '../database/services';
-import { FavoritesResponse } from './interfaces/favorites-response.interface';
+import { FavsService } from './favs.service';
+import { ArtistService } from '../artist/artist.service';
+import { AlbumService } from '../album/album.service';
+import { TrackService } from '../track/track.service';
+import { FavoritesResponse } from './favs.interface';
 
 @Controller('favs')
 export class FavsController {
   constructor(
-    private readonly favoritesService: FavoritesService,
+    private readonly favoritesService: FavsService,
     private readonly artistService: ArtistService,
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,

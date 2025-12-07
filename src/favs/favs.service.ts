@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Favorites } from '../interfaces';
-import { PrismaService } from '../../prisma/prisma.service';
+import { FavoritesIds } from './favs.interface';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
-export class FavoritesService {
+export class FavsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getFavorites(): Promise<Favorites> {
+  async getFavorites(): Promise<FavoritesIds> {
     const [artists, albums, tracks] = await Promise.all([
       this.prisma.favoriteArtist.findMany(),
       this.prisma.favoriteAlbum.findMany(),

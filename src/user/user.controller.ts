@@ -13,7 +13,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { validate as isValidUUID } from 'uuid';
-import { UserService } from '../database/services';
+import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 

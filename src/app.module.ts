@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from './database';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { TrackModule } from './track/track.module';
@@ -10,7 +9,6 @@ import { FavsModule } from './favs/favs.module';
 @Module({
   imports: [
     PrismaModule,
-    DatabaseModule,
     UserModule,
     TrackModule,
     ArtistModule,
