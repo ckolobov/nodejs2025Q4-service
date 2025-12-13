@@ -54,7 +54,10 @@ export class TrackController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  async updateTrack(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
+  async updateTrack(
+    @Param('id') id: string,
+    @Body() updateTrackDto: UpdateTrackDto,
+  ) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid track ID (not a valid UUID)');
     }
@@ -64,7 +67,10 @@ export class TrackController {
       throw new NotFoundException(`Track with id ${id} not found`);
     }
 
-    const updatedTrack = await this.trackService.updateTrack(id, updateTrackDto);
+    const updatedTrack = await this.trackService.updateTrack(
+      id,
+      updateTrackDto,
+    );
     return updatedTrack;
   }
 

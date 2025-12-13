@@ -1,8 +1,12 @@
-import { Injectable, LogLevel, LoggerService } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 
 @Injectable()
 export class LoggingService implements LoggerService {
-  private formatMessage(level: string, message: string, context?: string): string {
+  private formatMessage(
+    level: string,
+    message: string,
+    context?: string,
+  ): string {
     const timestamp = new Date().toISOString();
     const contextStr = context ? ` [${context}]` : '';
     return `[${timestamp}] [${level}]${contextStr} ${message}`;
@@ -41,7 +45,12 @@ export class LoggingService implements LoggerService {
     this.log(`Incoming Request: ${JSON.stringify(logData)}`, 'HTTP');
   }
 
-  logResponse(method: string, url: string, statusCode: number, responseTime: number) {
+  logResponse(
+    method: string,
+    url: string,
+    statusCode: number,
+    responseTime: number,
+  ) {
     const logData = {
       method,
       url,
