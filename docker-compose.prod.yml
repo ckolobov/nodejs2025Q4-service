@@ -31,6 +31,9 @@ services:
     container_name: home_library_app
     environment:
       PORT: ${PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      LOG_FILE_PATH: ${LOG_FILE_PATH}
+      LOG_FILE_MAX_SIZE: ${LOG_FILE_MAX_SIZE}
       CRYPT_SALT: ${CRYPT_SALT}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_SECRET_REFRESH_KEY: ${JWT_SECRET_REFRESH_KEY}

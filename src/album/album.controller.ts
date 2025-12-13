@@ -53,7 +53,10 @@ export class AlbumController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  async updateAlbum(@Param('id') id: string, @Body() updateAlbumDto: UpdateAlbumDto) {
+  async updateAlbum(
+    @Param('id') id: string,
+    @Body() updateAlbumDto: UpdateAlbumDto,
+  ) {
     if (!isValidUUID(id)) {
       throw new BadRequestException('Invalid album ID (not a valid UUID)');
     }
@@ -63,7 +66,10 @@ export class AlbumController {
       throw new NotFoundException(`Album with id ${id} not found`);
     }
 
-    const updatedAlbum = await this.albumService.updateAlbum(id, updateAlbumDto);
+    const updatedAlbum = await this.albumService.updateAlbum(
+      id,
+      updateAlbumDto,
+    );
     return updatedAlbum;
   }
 
