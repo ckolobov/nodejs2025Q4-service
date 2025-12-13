@@ -1,7 +1,23 @@
 import { Injectable, LoggerService } from '@nestjs/common';
 
+enum LogLevel {
+  ERROR = 0,
+  WARN = 1,
+  LOG = 2,
+  DEBUG = 3,
+  VERBOSE = 4,
+}
+
 @Injectable()
 export class LoggingService implements LoggerService {
+  private logLevel: LogLevel;
+
+  constructor() {
+    const envLogLevel = process.env.LOG_LEVEL?.toUpperCase() || 'LOG';
+    this.logLevel =
+      LogLevel[envLogLevel as keyof typeof LogLevel] ?? LogLevel.LOG;
+  }
+
   private formatMessage(
     level: string,
     message: string,
@@ -12,27 +28,41 @@ export class LoggingService implements LoggerService {
     return `[${timestamp}] [${level}]${contextStr} ${message}`;
   }
 
+  private shouldLog(level: LogLevel): boolean {
+    return level <= this.logLevel;
+  }
+
   log(message: any, context?: string) {
-    console.log(this.formatMessage('LOG', message, context));
+    if (this.shouldLog(LogLevel.LOG)) {
+      console.log(this.formatMessage('LOG', message, context));
+    }
   }
 
   error(message: any, trace?: string, context?: string) {
-    console.error(this.formatMessage('ERROR', message, context));
-    if (trace) {
-      console.error(trace);
+    if (this.shouldLog(LogLevel.ERROR)) {
+      console.error(this.formatMessage('ERROR', message, context));
+      if (trace) {
+        console.error(trace);
+      }
     }
   }
 
   warn(message: any, context?: string) {
-    console.warn(this.formatMessage('WARN', message, context));
+    if (this.shouldLog(LogLevel.WARN)) {
+      console.warn(this.formatMessage('WARN', message, context));
+    }
   }
 
   debug(message: any, context?: string) {
-    console.debug(this.formatMessage('DEBUG', message, context));
+    if (this.shouldLog(LogLevel.DEBUG)) {
+      console.debug(this.formatMessage('DEBUG', message, context));
+    }
   }
 
   verbose(message: any, context?: string) {
-    console.log(this.formatMessage('VERBOSE', message, context));
+    if (this.shouldLog(LogLevel.VERBOSE)) {
+      console.log(this.formatMessage('VERBOSE', message, context));
+    }
   }
 
   logRequest(method: string, url: string, query: any, body: any) {
